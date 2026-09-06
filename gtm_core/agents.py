@@ -24,7 +24,7 @@ def get_llm(provider: str = "openai", model_name: Optional[str] = None, api_key:
     if provider in ["google", "gemini"]:
         from langchain_google_genai import ChatGoogleGenerativeAI
         key = (api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or "").strip()
-        model = (model_name or "gemini-1.5-flash").strip()
+        model = (model_name or "gemini-flash-lite-latest").strip()
         return ChatGoogleGenerativeAI(model=model, google_api_key=key, temperature=temperature)
         
     elif provider == "anthropic":

@@ -144,20 +144,23 @@ with st.sidebar:
         dynamic_gemini_models = fetch_available_gemini_models(api_key)
         if dynamic_gemini_models:
             st.success(f"🟢 Found {len(dynamic_gemini_models)} available Gemini models")
-            # Default to gemini-1.5-flash or gemini-2.0-flash if present
+            # Default to gemini-flash-lite-latest if present
             default_idx = 0
             for i, m in enumerate(dynamic_gemini_models):
-                if m == "gemini-1.5-flash":
+                if m == "gemini-flash-lite-latest" or "flash-lite-latest" in m:
                     default_idx = i
                     break
-                elif "1.5-flash" in m:
+                elif "flash-lite" in m:
                     default_idx = i
                     break
+                elif m == "gemini-1.5-flash":
+                    default_idx = i
             model_name = st.selectbox("Available Gemini Model", dynamic_gemini_models, index=default_idx)
         else:
             if api_key and len(api_key.strip()) >= 10:
                 st.caption("ℹ️ Using standard model catalogue (Check API key if connection fails)")
             gemini_model_options = [
+                "gemini-flash-lite-latest",
                 "gemini-1.5-flash",
                 "gemini-2.0-flash",
                 "gemini-1.5-flash-8b",
@@ -168,7 +171,7 @@ with st.sidebar:
             ]
             chosen_gemini = st.selectbox("Model", gemini_model_options, index=0)
             if chosen_gemini == "Custom Model Name...":
-                model_name = st.text_input("Enter Gemini Model Name", value="gemini-1.5-flash")
+                model_name = st.text_input("Enter Gemini Model Name", value="gemini-flash-lite-latest")
             else:
                 model_name = chosen_gemini
     elif provider_key == "openai":
