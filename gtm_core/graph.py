@@ -1,4 +1,4 @@
-﻿"""
+"""
 LangGraph orchestration for the GTM multi-agent workflow.
 """
 from typing import Any, Dict
@@ -47,12 +47,17 @@ def build_gtm_graph(provider: str = "mock", model_name: str = None, api_key: str
     workflow.add_node("blog_writer", run_blog)
     workflow.add_node("critic", run_critic)
     
-    # Connect sequential & parallel writer edges
+    # Parallel Fan-Out: Strategist concurrently triggers all 4 specialized copywriters
     workflow.add_edge(START, "strategist")
     workflow.add_edge("strategist", "linkedin_writer")
-    workflow.add_edge("linkedin_writer", "email_writer")
-    workflow.add_edge("email_writer", "ad_writer")
-    workflow.add_edge("ad_writer", "blog_writer")
+    workflow.add_edge("strategist", "email_writer")
+    workflow.add_edge("strategist", "ad_writer")
+    workflow.add_edge("strategist", "blog_writer")
+    
+    # Parallel Fan-In: All 4 copywriters merge into the QA Critic evaluator
+    workflow.add_edge("linkedin_writer", "critic")
+    workflow.add_edge("email_writer", "critic")
+    workflow.add_edge("ad_writer", "critic")
     workflow.add_edge("blog_writer", "critic")
     
     # Conditional edge for QA review loop

@@ -1,7 +1,5 @@
-﻿"""
-State definition for the GTM Multi-Agent Workflow using TypedDict & Pydantic models.
-"""
-from typing import TypedDict, List, Optional
+from typing import TypedDict, List, Optional, Dict, Any, Annotated
+import operator
 from pydantic import BaseModel, Field
 
 class GTMState(TypedDict, total=False):
@@ -18,21 +16,28 @@ class GTMState(TypedDict, total=False):
     pricing_and_cta: str
     selected_tone: str
     
-    # Generated Copy Assets
+    # Generated Copy Assets (Parallel Fan-Out)
     linkedin_post: str
     promo_email: str
     blog_post: str
     ad_variations: str
     
-    # Review & Quality Assurance
+    # Review & Quality Assurance (Fan-In)
     review_score: int
     review_feedback: str
     review_passed: bool
     revision_count: int
     max_revisions: int
     
-    # Execution Tracing & Logs
-    status_logs: List[str]
+    # Saved Approval State & Completion Report
+    approval_status: str           # "PENDING_REVIEW", "APPROVED", "REVISION_REQUESTED"
+    approved_by: Optional[str]
+    approval_timestamp: Optional[str]
+    approval_notes: Optional[str]
+    completion_report: Optional[Dict[str, Any]]
+    
+    # Execution Tracing & Logs (Merged via operator.add in parallel branches)
+    status_logs: Annotated[List[str], operator.add]
     error: Optional[str]
 
 class StrategyExtraction(BaseModel):

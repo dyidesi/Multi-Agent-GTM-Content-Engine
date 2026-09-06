@@ -83,9 +83,6 @@ def strategy_node(state: GTMState, llm: Any) -> GTMState:
     """Extracts positioning, target audience, core value proposition, and key features."""
     raw_doc = state.get("raw_document", "")
     tone = state.get("selected_tone", "Inspiring & Professional")
-    logs = state.get("status_logs", [])
-    
-    logs.append("🧠 **Strategist Agent**: Analyzing document and formulating GTM positioning...")
     
     if llm == "mock":
         return {
@@ -100,7 +97,7 @@ def strategy_node(state: GTMState, llm: Any) -> GTMState:
             ],
             "launch_date": "September 15, 2026",
             "pricing_and_cta": "Free tier for public repos; $29/user/month for Pro. CTA: Start 30-day trial with code LAUNCH20",
-            "status_logs": logs
+            "status_logs": ["🧠 **Strategist Agent**: Analyzed document & formulated positioning pillars."]
         }
         
     prompt = f"""Source Document:
@@ -138,10 +135,9 @@ Return ONLY JSON."""
             "key_features": data.get("key_features", []),
             "launch_date": data.get("launch_date", "Coming Soon"),
             "pricing_and_cta": data.get("pricing_and_cta", ""),
-            "status_logs": logs
+            "status_logs": ["🧠 **Strategist Agent**: Analyzed document & formulated positioning pillars."]
         }
     except Exception as e:
-        logs.append(f"⚠️ Strategy parsing fallback: {str(e)}")
         return {
             "product_name": "Product Launch",
             "target_audience": "Tech & Business Leaders",
@@ -149,14 +145,11 @@ Return ONLY JSON."""
             "key_features": ["High Performance", "Enterprise Ready", "Seamless Integration"],
             "launch_date": "Q3 2026",
             "pricing_and_cta": "Contact sales / Start trial",
-            "status_logs": logs
+            "status_logs": [f"⚠️ **Strategist Agent**: Parsing fallback used ({str(e)})."]
         }
 
 def linkedin_node(state: GTMState, llm: Any) -> GTMState:
     """Generates an engaging, professional LinkedIn post."""
-    logs = state.get("status_logs", [])
-    logs.append("✍️ **LinkedIn Agent**: Drafting viral, high-signal LinkedIn post...")
-    
     if llm == "mock":
         mock_post = f"""🚀 Announcing {state.get('product_name', 'OmniCode AI 2.0')}: The autonomous pair programmer built for enterprise codebases!
 
@@ -173,7 +166,7 @@ Key Highlights:
 👉 Start your 30-day trial with code LAUNCH20: https://omnicode.ai
 
 #SoftwareEngineering #AIAgents #DevOps #TechInnovation"""
-        return {"linkedin_post": mock_post, "status_logs": logs}
+        return {"linkedin_post": mock_post, "status_logs": ["✍️ **LinkedIn Agent**: Drafted high-signal LinkedIn launch post."]}
         
     context = f"""Product: {state.get('product_name')}
 Audience: {state.get('target_audience')}
@@ -187,13 +180,10 @@ Tone: {state.get('selected_tone', 'Inspiring & Professional')}"""
         SystemMessage(content=LINKEDIN_AGENT_PROMPT),
         HumanMessage(content=f"Create a high-impact LinkedIn post using this verified context:\n\n{context}")
     ])
-    return {"linkedin_post": extract_text_content(response.content), "status_logs": logs}
+    return {"linkedin_post": extract_text_content(response.content), "status_logs": ["✍️ **LinkedIn Agent**: Drafted high-signal LinkedIn launch post."]}
 
 def email_node(state: GTMState, llm: Any) -> GTMState:
     """Drafts a high-converting promotional launch email."""
-    logs = state.get("status_logs", [])
-    logs.append("📧 **Email Agent**: Crafting lifecycle announcement email & subject lines...")
-    
     if llm == "mock":
         mock_email = f"""**Subject Lines:**
 1. Say goodbye to multi-file refactoring headaches
@@ -222,7 +212,7 @@ Here is what is new:
 
 Best regards,  
 The Product Team"""
-        return {"promo_email": mock_email, "status_logs": logs}
+        return {"promo_email": mock_email, "status_logs": ["📧 **Email Agent**: Drafted promotional email campaign with subject lines."]}
         
     context = f"""Product: {state.get('product_name')}
 Audience: {state.get('target_audience')}
@@ -236,13 +226,10 @@ Tone: {state.get('selected_tone', 'Professional & High-Energy')}"""
         SystemMessage(content=EMAIL_AGENT_PROMPT),
         HumanMessage(content=f"Draft the promotional launch email using this context:\n\n{context}")
     ])
-    return {"promo_email": extract_text_content(response.content), "status_logs": logs}
+    return {"promo_email": extract_text_content(response.content), "status_logs": ["📧 **Email Agent**: Drafted promotional email campaign with subject lines."]}
 
 def ad_copy_node(state: GTMState, llm: Any) -> GTMState:
     """Generates 3 performance ad copy variations."""
-    logs = state.get("status_logs", [])
-    logs.append("🎯 **Ad Copy Agent**: Generating 3 performance ad variations (Pain, Benefit, Urgency)...")
-    
     if llm == "mock":
         mock_ads = f"""### Variant A: Problem / Pain-Point Focused
 - **Headline**: Still refactoring 50 files by hand?
@@ -258,7 +245,7 @@ def ad_copy_node(state: GTMState, llm: Any) -> GTMState:
 - **Headline**: Launch Offer: 20% Off {state.get('product_name')}
 - **Primary Text**: Use code `LAUNCH20` for 20% off annual team plans. Zero model training on customer IP.
 - **CTA**: [Claim Launch Offer]"""
-        return {"ad_variations": mock_ads, "status_logs": logs}
+        return {"ad_variations": mock_ads, "status_logs": ["🎯 **Ad Copy Agent**: Generated 3 performance ad variations (Pain, Benefit, Urgency)."]}
         
     context = f"""Product: {state.get('product_name')}
 Value Prop: {state.get('core_value_prop')}
@@ -269,13 +256,10 @@ Pricing/CTA: {state.get('pricing_and_cta')}"""
         SystemMessage(content=AD_COPY_AGENT_PROMPT),
         HumanMessage(content=f"Create 3 distinct ad variants based on this product context:\n\n{context}")
     ])
-    return {"ad_variations": extract_text_content(response.content), "status_logs": logs}
+    return {"ad_variations": extract_text_content(response.content), "status_logs": ["🎯 **Ad Copy Agent**: Generated 3 performance ad variations (Pain, Benefit, Urgency)."]}
 
 def blog_node(state: GTMState, llm: Any) -> GTMState:
     """Drafts an announcement blog post."""
-    logs = state.get("status_logs", [])
-    logs.append("📝 **Blog Editorial Agent**: Writing comprehensive launch announcement blog...")
-    
     if llm == "mock":
         mock_blog = f"""# Introducing {state.get('product_name')}: The Autonomous Pair Programmer with Zero-Latency Context
 
@@ -298,7 +282,7 @@ Full data sovereignty with SOC2 Type II, HIPAA, and GDPR compliance. Your code i
 Launching on {state.get('launch_date')}. {state.get('pricing_and_cta')}
 
 Join thousands of high-velocity developers today."""
-        return {"blog_post": mock_blog, "status_logs": logs}
+        return {"blog_post": mock_blog, "status_logs": ["📝 **Blog Editorial Agent**: Written launch announcement blog post."]}
         
     doc_index = SimpleDocIndex(state.get("raw_document", ""))
     context_chunks = doc_index.query(f"{state.get('product_name')} features architecture pricing")
@@ -315,13 +299,10 @@ Detailed Source Context:
         SystemMessage(content=BLOG_AGENT_PROMPT),
         HumanMessage(content=f"Write the official launch blog post using this context:\n\n{context}")
     ])
-    return {"blog_post": extract_text_content(response.content), "status_logs": logs}
+    return {"blog_post": extract_text_content(response.content), "status_logs": ["📝 **Blog Editorial Agent**: Written launch announcement blog post."]}
 
 def critic_node(state: GTMState, llm: Any) -> GTMState:
     """Evaluates the generated content suite against the source document."""
-    logs = state.get("status_logs", [])
-    logs.append("🧐 **Review & QA Critic Agent**: Auditing factual grounding, tone consistency, and CTA clarity...")
-    
     revisions = state.get("revision_count", 0) + 1
     
     if llm == "mock":
@@ -330,7 +311,7 @@ def critic_node(state: GTMState, llm: Any) -> GTMState:
             "review_passed": True,
             "review_feedback": "✅ **PASSED (Score 94/100)**\n- **Factual Grounding**: 100% accurate against product specs.\n- **Tone**: Consistently professional and builder-focused across all 4 formats.\n- **CTAs**: Clear and actionable with discount codes preserved.",
             "revision_count": revisions,
-            "status_logs": logs
+            "status_logs": ["🧐 **QA Critic Agent**: Evaluated full content suite (QA Score: 94/100, PASSED ✅)."]
         }
         
     suite = f"""=== SOURCE DOCUMENT ===
@@ -393,14 +374,13 @@ Return ONLY JSON."""
             "review_passed": passed,
             "review_feedback": feedback,
             "revision_count": revisions,
-            "status_logs": logs
+            "status_logs": [f"🧐 **QA Critic Agent**: Evaluated full content suite (QA Score: {score}/100, {'PASSED ✅' if passed else 'REVISION REQUIRED ⚠️'})."]
         }
     except Exception as e:
-        logs.append(f"⚠️ Critic evaluation parsing fallback: {str(e)}")
         return {
             "review_score": 88,
             "review_passed": True,
             "review_feedback": "QA Score: 88/100 (PASSED ✅)\n- Verified factual consistency with product brief.",
             "revision_count": revisions,
-            "status_logs": logs
+            "status_logs": ["🧐 **QA Critic Agent**: Fallback audit recorded (QA Score: 88/100, PASSED ✅)."]
         }

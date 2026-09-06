@@ -1,4 +1,4 @@
-﻿# Virtual Environment
+# Virtual Environment
 .venv/
 venv/
 ENV/
@@ -8,6 +8,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+
+# Large Video and Media Files (Hosted on YouTube/Drive)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.zip
 
 # Environment & Secrets
 .env
