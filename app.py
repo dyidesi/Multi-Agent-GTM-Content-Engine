@@ -117,16 +117,39 @@ with st.sidebar:
     
     if provider_key == "google":
         default_gemini_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY", "")
-        api_key = st.text_input("Gemini API Key", value=default_gemini_key, type="password")
-        model_name = st.selectbox("Model", ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash-exp"], index=0)
+        api_key = st.text_input("Gemini API Key", value=default_gemini_key, type="password", placeholder="AIzaSy...")
+        gemini_model_options = [
+            "gemini-1.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash-8b",
+            "gemini-1.5-pro",
+            "gemini-1.5-pro-latest",
+            "gemini-1.5-flash-latest",
+            "Custom Model Name..."
+        ]
+        chosen_gemini = st.selectbox("Model", gemini_model_options, index=0)
+        if chosen_gemini == "Custom Model Name...":
+            model_name = st.text_input("Enter Gemini Model Name", value="gemini-1.5-flash")
+        else:
+            model_name = chosen_gemini
     elif provider_key == "openai":
         default_openai_key = os.getenv("OPENAI_API_KEY", "")
-        api_key = st.text_input("OpenAI API Key", value=default_openai_key, type="password")
-        model_name = st.selectbox("Model", ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"], index=0)
+        api_key = st.text_input("OpenAI API Key", value=default_openai_key, type="password", placeholder="sk-...")
+        openai_model_options = ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo", "Custom Model Name..."]
+        chosen_openai = st.selectbox("Model", openai_model_options, index=0)
+        if chosen_openai == "Custom Model Name...":
+            model_name = st.text_input("Enter OpenAI Model Name", value="gpt-4o-mini")
+        else:
+            model_name = chosen_openai
     elif provider_key == "anthropic":
         default_anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
-        api_key = st.text_input("Anthropic API Key", value=default_anthropic_key, type="password")
-        model_name = st.selectbox("Model", ["claude-3-5-sonnet-20240620", "claude-3-haiku-20240307"], index=0)
+        api_key = st.text_input("Anthropic API Key", value=default_anthropic_key, type="password", placeholder="sk-ant-...")
+        anthropic_model_options = ["claude-3-5-sonnet-20240620", "claude-3-haiku-20240307", "Custom Model Name..."]
+        chosen_anthropic = st.selectbox("Model", anthropic_model_options, index=0)
+        if chosen_anthropic == "Custom Model Name...":
+            model_name = st.text_input("Enter Anthropic Model Name", value="claude-3-5-sonnet-20240620")
+        else:
+            model_name = chosen_anthropic
     elif provider_key == "ollama":
         import urllib.request
         detected_models = []

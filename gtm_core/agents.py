@@ -23,14 +23,14 @@ def get_llm(provider: str = "openai", model_name: Optional[str] = None, api_key:
     
     if provider in ["google", "gemini"]:
         from langchain_google_genai import ChatGoogleGenerativeAI
-        key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-        model = model_name or "gemini-1.5-pro"
+        key = (api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or "").strip()
+        model = (model_name or "gemini-1.5-flash").strip()
         return ChatGoogleGenerativeAI(model=model, google_api_key=key, temperature=temperature)
         
     elif provider == "anthropic":
         from langchain_anthropic import ChatAnthropic
-        key = api_key or os.getenv("ANTHROPIC_API_KEY")
-        model = model_name or "claude-3-5-sonnet-20240620"
+        key = (api_key or os.getenv("ANTHROPIC_API_KEY") or "").strip()
+        model = (model_name or "claude-3-5-sonnet-20240620").strip()
         return ChatAnthropic(model=model, anthropic_api_key=key, temperature=temperature)
         
     elif provider == "ollama":
@@ -38,7 +38,7 @@ def get_llm(provider: str = "openai", model_name: Optional[str] = None, api_key:
             from langchain_ollama import ChatOllama
         except ImportError:
             from langchain_community.chat_models import ChatOllama
-        model = model_name or "llama3.2"
+        model = (model_name or "llama3.2:latest").strip()
         base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
         return ChatOllama(model=model, base_url=base_url, temperature=temperature)
         
@@ -47,8 +47,8 @@ def get_llm(provider: str = "openai", model_name: Optional[str] = None, api_key:
         
     else: # Default: OpenAI
         from langchain_openai import ChatOpenAI
-        key = api_key or os.getenv("OPENAI_API_KEY")
-        model = model_name or "gpt-4o-mini"
+        key = (api_key or os.getenv("OPENAI_API_KEY") or "").strip()
+        model = (model_name or "gpt-4o-mini").strip()
         return ChatOpenAI(model=model, openai_api_key=key, temperature=temperature)
 
 def strategy_node(state: GTMState, llm: Any) -> GTMState:
