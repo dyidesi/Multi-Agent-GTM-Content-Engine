@@ -51,6 +51,34 @@ def get_llm(provider: str = "openai", model_name: Optional[str] = None, api_key:
         model = (model_name or "gpt-4o-mini").strip()
         return ChatOpenAI(model=model, openai_api_key=key, temperature=temperature)
 
+def extract_text_content(content_obj: Any) -> str:
+    """Safely extracts plain text string from string, list of dicts/blocks, or AIMessage objects."""
+    if isinstance(content_obj, str):
+        return content_obj
+    elif isinstance(content_obj, list):
+        parts = []
+        for item in content_obj:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                if "text" in item:
+                    parts.append(item["text"])
+                elif "content" in item:
+                    parts.append(extract_text_content(item["content"]))
+            elif hasattr(item, "text"):
+                parts.append(getattr(item, "text"))
+            elif hasattr(item, "content"):
+                parts.append(extract_text_content(getattr(item, "content")))
+            else:
+                parts.append(str(item))
+        return "".join(parts)
+    elif isinstance(content_obj, dict):
+        if "text" in content_obj:
+            return content_obj["text"]
+        elif "content" in content_obj:
+            return extract_text_content(content_obj["content"])
+    return str(content_obj)
+
 def strategy_node(state: GTMState, llm: Any) -> GTMState:
     """Extracts positioning, target audience, core value proposition, and key features."""
     raw_doc = state.get("raw_document", "")
@@ -95,7 +123,7 @@ Return ONLY JSON."""
         HumanMessage(content=prompt)
     ])
     
-    content = response.content
+    content = extract_text_content(response.content)
     try:
         # Extract JSON substring if wrapped in markdown
         if "```json" in content:
@@ -150,7 +178,7 @@ Key Highlights:
     context = f"""Product: {state.get('product_name')}
 Audience: {state.get('target_audience')}
 Value Prop: {state.get('core_value_prop')}
-Key Features: {json.dumps(state.get('key_features', []))}
+Features: {json.dumps(state.get('key_features', []))}
 Launch Date: {state.get('launch_date')}
 Pricing/CTA: {state.get('pricing_and_cta')}
 Tone: {state.get('selected_tone', 'Inspiring & Professional')}"""
@@ -159,7 +187,7 @@ Tone: {state.get('selected_tone', 'Inspiring & Professional')}"""
         SystemMessage(content=LINKEDIN_AGENT_PROMPT),
         HumanMessage(content=f"Create a high-impact LinkedIn post using this verified context:\n\n{context}")
     ])
-    return {"linkedin_post": response.content, "status_logs": logs}
+    return {"linkedin_post": extract_text_content(response.content), "status_logs": logs}
 
 def email_node(state: GTMState, llm: Any) -> GTMState:
     """Drafts a high-converting promotional launch email."""
@@ -208,7 +236,7 @@ Tone: {state.get('selected_tone', 'Professional & High-Energy')}"""
         SystemMessage(content=EMAIL_AGENT_PROMPT),
         HumanMessage(content=f"Draft the promotional launch email using this context:\n\n{context}")
     ])
-    return {"promo_email": response.content, "status_logs": logs}
+    return {"promo_email": extract_text_content(response.content), "status_logs": logs}
 
 def ad_copy_node(state: GTMState, llm: Any) -> GTMState:
     """Generates 3 performance ad copy variations."""
@@ -241,7 +269,7 @@ Pricing/CTA: {state.get('pricing_and_cta')}"""
         SystemMessage(content=AD_COPY_AGENT_PROMPT),
         HumanMessage(content=f"Create 3 distinct ad variants based on this product context:\n\n{context}")
     ])
-    return {"ad_variations": response.content, "status_logs": logs}
+    return {"ad_variations": extract_text_content(response.content), "status_logs": logs}
 
 def blog_node(state: GTMState, llm: Any) -> GTMState:
     """Drafts an announcement blog post."""
@@ -287,7 +315,7 @@ Detailed Source Context:
         SystemMessage(content=BLOG_AGENT_PROMPT),
         HumanMessage(content=f"Write the official launch blog post using this context:\n\n{context}")
     ])
-    return {"blog_post": response.content, "status_logs": logs}
+    return {"blog_post": extract_text_content(response.content), "status_logs": logs}
 
 def critic_node(state: GTMState, llm: Any) -> GTMState:
     """Evaluates the generated content suite against the source document."""
@@ -337,7 +365,7 @@ Return ONLY JSON."""
         HumanMessage(content=f"{suite}\n\n{prompt}")
     ])
     
-    content = response.content
+    content = extract_text_content(response.content)
     try:
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()
