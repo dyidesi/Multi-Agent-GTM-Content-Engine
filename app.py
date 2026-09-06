@@ -85,6 +85,28 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+@st.cache_data(ttl=300, show_spinner=False)
+def fetch_available_gemini_models(api_key_str: str):
+    if not api_key_str or len(api_key_str.strip()) < 10:
+        return []
+    import urllib.request
+    clean_key = api_key_str.strip()
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={clean_key}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Streamlit-GTM-Agent"})
+        with urllib.request.urlopen(req, timeout=3.0) as resp:
+            data = json.loads(resp.read().decode())
+            models = []
+            for m in data.get("models", []):
+                methods = m.get("supportedGenerationMethods", [])
+                if "generateContent" in methods:
+                    name = m.get("name", "").replace("models/", "")
+                    if name:
+                        models.append(name)
+            return sorted(models)
+    except Exception:
+        return []
+
 # ----------------- SIDEBAR CONFIG -----------------
 with st.sidebar:
     st.markdown("## 🤖 **GTM Agent Engine**")
@@ -118,20 +140,37 @@ with st.sidebar:
     if provider_key == "google":
         default_gemini_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY", "")
         api_key = st.text_input("Gemini API Key", value=default_gemini_key, type="password", placeholder="AIzaSy...")
-        gemini_model_options = [
-            "gemini-1.5-flash",
-            "gemini-2.0-flash",
-            "gemini-1.5-flash-8b",
-            "gemini-1.5-pro",
-            "gemini-1.5-pro-latest",
-            "gemini-1.5-flash-latest",
-            "Custom Model Name..."
-        ]
-        chosen_gemini = st.selectbox("Model", gemini_model_options, index=0)
-        if chosen_gemini == "Custom Model Name...":
-            model_name = st.text_input("Enter Gemini Model Name", value="gemini-1.5-flash")
+        
+        dynamic_gemini_models = fetch_available_gemini_models(api_key)
+        if dynamic_gemini_models:
+            st.success(f"🟢 Found {len(dynamic_gemini_models)} available Gemini models")
+            # Default to gemini-1.5-flash or gemini-2.0-flash if present
+            default_idx = 0
+            for i, m in enumerate(dynamic_gemini_models):
+                if m == "gemini-1.5-flash":
+                    default_idx = i
+                    break
+                elif "1.5-flash" in m:
+                    default_idx = i
+                    break
+            model_name = st.selectbox("Available Gemini Model", dynamic_gemini_models, index=default_idx)
         else:
-            model_name = chosen_gemini
+            if api_key and len(api_key.strip()) >= 10:
+                st.caption("ℹ️ Using standard model catalogue (Check API key if connection fails)")
+            gemini_model_options = [
+                "gemini-1.5-flash",
+                "gemini-2.0-flash",
+                "gemini-1.5-flash-8b",
+                "gemini-1.5-pro",
+                "gemini-1.5-pro-latest",
+                "gemini-1.5-flash-latest",
+                "Custom Model Name..."
+            ]
+            chosen_gemini = st.selectbox("Model", gemini_model_options, index=0)
+            if chosen_gemini == "Custom Model Name...":
+                model_name = st.text_input("Enter Gemini Model Name", value="gemini-1.5-flash")
+            else:
+                model_name = chosen_gemini
     elif provider_key == "openai":
         default_openai_key = os.getenv("OPENAI_API_KEY", "")
         api_key = st.text_input("OpenAI API Key", value=default_openai_key, type="password", placeholder="sk-...")
